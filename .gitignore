@@ -1,1 +1,5 @@
 .venv/
+*.log
+.vscode/
+*.db
+__pycache__/
