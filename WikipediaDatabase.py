@@ -27,30 +27,28 @@ class WikipediaDatabase:
         CREATE TABLE IF NOT EXISTS pages (
             url TEXT PRIMARY KEY,
             children TEXT,
-            parents TEXT,
             depth_explored INTEGER
         )
         ''')
         await self.conn.commit()
 
-    async def save_page(self, url, children, parents, depth_explored):
+    async def save_page(self, url, children, depth_explored):
         await self.conn.execute('''
-        INSERT OR REPLACE INTO pages (url, children, parents, depth_explored)
-        VALUES (?, ?, ?, ?)
-        ''', (url, json.dumps(list(children)), json.dumps(list(parents)), depth_explored))
+        INSERT OR REPLACE INTO pages (url, children, depth_explored)
+        VALUES (?, ?, ?)
+        ''', (url, json.dumps(list(children)), depth_explored))
         await self.conn.commit()
 
     async def close(self):
         await self.conn.close()
 
     async def load_all_pages(self) -> dict[str, WikipediaPage]:
-        cursor = await self.conn.execute('SELECT url, children, parents, depth_explored FROM pages')
+        cursor = await self.conn.execute('SELECT url, children, depth_explored FROM pages')
         data = await cursor.fetchall()
         pages = {}
-        for url, children_json, parents_json, depth in data:
+        for url, children_json, depth in data:
             page = WikipediaPage(url)
             page.children = set(json.loads(children_json))
-            page.parents = set(json.loads(parents_json))
             page.depth_explored = depth if depth is not None else 0
             pages[url] = page
         return pages

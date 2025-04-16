@@ -1,5 +1,5 @@
 import json
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests, logging
 
@@ -18,7 +18,7 @@ class WikipediaCrawler:
     @classmethod
     def _validate_url(cls, url: str) -> bool:
         """Validate the URL format."""
-        if not url.__contains__('wikipedia.org'): return False
+        if not url.__contains__('.wikipedia.org/'): return False
 
         try:
             result = urlparse(url)
@@ -27,7 +27,7 @@ class WikipediaCrawler:
             return False
 
     @classmethod
-    def crawl(cls, url: str) -> WikipediaPage:
+    def crawl(cls, url: str) -> list:
         """
         Crawls the given URL and extracts links.
 
@@ -37,67 +37,67 @@ class WikipediaCrawler:
             raise ValueError(f"Invalid URL: {url}")
         
         page = WikipediaPage(url)
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        for link in soup.find_all('a'):
-            if link.get('href') and cls._validate_url(link.get('href')):
-                page.children.add(link.get('href'))
-        return page
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            for link in soup.find_all('a',href=True):
+                full_url = urljoin(response.url, link['href'])
+                normalized_url = WikipediaPage(full_url).url
+                if cls._validate_url(normalized_url):
+                    page.children.add(normalized_url)
+        except requests.RequestException as e:
+            cls.logger.error(f"Request failed: {e}")
+            print(f"Request failed: {e}")
+
+        return list(set(page.children))
 
     @classmethod
-    async def deep_crawl(cls, url: str, max_depth: int = 2, db_path='wikipedia_crawl.db'):
-        cls.logger.info(f'Starting deep crawl from {url} with max depth {max_depth}')
+    async def deep_crawl(cls, url: str, memo: dict[str, WikipediaPage] = None, database_handler: WikipediaDatabase = None, max_depth: int = None) -> dict[str, WikipediaPage]:
+        """
+        Deep crawl from the given URL, exploring links up to a specified depth.
+        """
+        if memo is None:
+            memo: dict[str, WikipediaPage] = {}
 
-        # Connexion DB
-        db = WikipediaDatabase(db_path)
-        await db.connect()
+        visiting = set()
 
-        # Chargement des données existantes
-        cls.logger.info('Loading existing pages from database...')
-        page_map = await db.load_all_pages()
+        async def dfs(current_url: str, current_depth):
+            
+            if max_depth is not None and current_depth >= max_depth:
+                cls.logger.debug(f"Max depth reached at {current_url}")
+                memo[current_url] = WikipediaPage(current_url)
+                return 0
 
-        to_visit = [(url, 0)]
+            if current_url in visiting:
+                cls.logger.debug(f"Already visiting {current_url}, skipping to avoid loop")
+                return 0
 
-        while to_visit:
-            current_url, depth = to_visit.pop(0)
-            base_url = WikipediaPage(current_url).url
-            current_page = page_map.get(base_url)
+            if current_url in memo and memo[current_url].depth_explored >= max_depth - current_depth:
+                cls.logger.debug(f"Already explored {current_url} to depth {memo[current_url].depth_explored}, skipping")
+                return memo[current_url].depth_explored
 
-            # Calcul de profondeur restante à explorer à partir de cette page
-            depth_remaining = max_depth - depth
-            if current_page and current_page.depth_explored >= depth_remaining:
-                cls.logger.info(f'Skipping {base_url} at depth {depth} (already explored {current_page.depth_explored} deep)')
-                continue
+            cls.logger.info(f"Visiting: {current_url} at depth {current_depth}")
+            visiting.add(current_url)
+            neighbors = cls.crawl(current_url)
+            cls.logger.debug(f"Found {len(neighbors)} links on {current_url}: {neighbors}")
 
-            cls.logger.info(f'Visiting: {base_url} at depth {depth}')
-            try:
-                page = cls.crawl(current_url)
-                if current_page is None:
-                    current_page = WikipediaPage(base_url)
+            max_reach = 0
+            for neighbor in neighbors:
+                depth = await dfs(neighbor, current_depth + 1)
+                max_reach = max(max_reach, 1 + depth)
+            
+            visiting.remove(current_url)
 
-                # Nettoyage des liens enfants
-                current_page.children = {WikipediaPage(child).url for child in page.children}
+            page = WikipediaPage(current_url)
+            page.children = neighbors
+            page.depth_explored = max_reach
+            memo[current_url] = page
 
-                # Mise à jour de la profondeur explorée
-                current_page.depth_explored = max(current_page.depth_explored, 1)
+            if database_handler:
+                await database_handler.save_page(page.url, page.children, page.depth_explored)
+                cls.logger.debug(f"Saved {current_url} to database")
 
-                # Traitement des enfants
-                for child_url in current_page.children:
-                    if child_url not in page_map:
-                        page_map[child_url] = WikipediaPage(child_url)
-                    page_map[child_url].parents.add(base_url)
+            return max_reach
 
-                    if depth + 1 <= max_depth:
-                        to_visit.append((child_url, depth + 1))
-
-                # Enregistrement
-                page_map[base_url] = current_page
-                cls.logger.info(f'Saving {base_url} to database...')
-                db.save_page(base_url, current_page.children, current_page.parents, current_page.depth_explored)
-
-            except ValueError as e:
-                print(f"Error crawling {current_url}: {e}")
-                cls.logger.error(f"Error crawling {current_url}: {e}")
-
-        await db.close()
-
+        await dfs(url, 0)
+        return memo

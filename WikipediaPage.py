@@ -6,7 +6,6 @@ class WikipediaPage:
         url_result = urlparse(url)
         self.url = url_result.scheme + '://' + url_result.netloc + url_result.path
         self.url_variants = set([url, self.url])
-        self.parents = set()
         self.children = set()
         self.depth_explored = 0
 
