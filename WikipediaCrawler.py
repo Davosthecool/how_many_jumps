@@ -1,4 +1,5 @@
 import json
+import time
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests, logging
@@ -16,25 +17,30 @@ class WikipediaCrawler:
     logger = logging.getLogger(__name__)
 
     @classmethod
-    def _validate_url(cls, url: str) -> bool:
+    def _validate_url(cls, url: str, domain_prefix: str = '') -> bool:
         """Validate the URL format."""
-        if not url.__contains__('.wikipedia.org/'): return False
+        if not domain_prefix+'.wikipedia.org' in url: 
+            raise ValueError(f"URL {url} does not contain the domain prefix: {domain_prefix}.wikipedia.org")
 
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc])
         except AttributeError:
-            return False
+            raise ValueError(f"Invalid URL: {url}")
 
     @classmethod
-    def crawl(cls, url: str) -> list:
+    def crawl(cls, url: str, domain_prefix: str ='') -> list:
         """
         Crawls the given URL and extracts links.
 
         :param url: The URL to crawl.
         """
-        if not cls._validate_url(url):
-            raise ValueError(f"Invalid URL: {url}")
+        try:
+            if not cls._validate_url(url, domain_prefix):
+                raise ValueError(f"Invalid URL: {url}")
+        except ValueError as e:
+            cls.logger.error(f"Validation failed: {e}")
+            raise ValueError(f"Validation failed: {e}")
         
         page = WikipediaPage(url)
         try:
@@ -43,8 +49,12 @@ class WikipediaCrawler:
             for link in soup.find_all('a',href=True):
                 full_url = urljoin(response.url, link['href'])
                 normalized_url = WikipediaPage(full_url).url
-                if cls._validate_url(normalized_url):
-                    page.children.add(normalized_url)
+                try:
+                    if cls._validate_url(normalized_url, domain_prefix):
+                        page.children.add(normalized_url)
+                except ValueError:
+                    cls.logger.debug(f"Invalid URL found: {normalized_url}, skipping")
+                    continue
         except requests.RequestException as e:
             cls.logger.error(f"Request failed: {e}")
             print(f"Request failed: {e}")
@@ -60,6 +70,15 @@ class WikipediaCrawler:
             memo: dict[str, WikipediaPage] = {}
 
         visiting = set()
+
+        domain = urlparse(url).netloc.split('.')[0]
+        if domain == 'wikipedia':
+            domain = ''
+
+        start_time = time.time()
+        start_memory = len(memo)
+        cls.logger.info(f"\n\nStarting deep crawl from {url} with domain {domain}")
+        cls.logger.info(f"Max depth: {max_depth}\n\n")
 
         async def dfs(current_url: str, current_depth):
             
@@ -78,11 +97,16 @@ class WikipediaCrawler:
 
             cls.logger.info(f"Visiting: {current_url} at depth {current_depth}")
             visiting.add(current_url)
-            neighbors = cls.crawl(current_url)
-            cls.logger.debug(f"Found {len(neighbors)} links on {current_url}: {neighbors}")
+            try:
+                neighbors = cls.crawl(current_url, domain)
+            except ValueError as e:
+                cls.logger.error(f"Error crawling {current_url}: {e}")
+                return 0
+            cls.logger.info(f"Found {len(neighbors)} links")
 
             max_reach = 0
-            for neighbor in neighbors:
+            for i,neighbor in enumerate(neighbors):
+                cls.logger.debug(f"Entering link {i+1}/{len(neighbors)}")
                 depth = await dfs(neighbor, current_depth + 1)
                 max_reach = max(max_reach, 1 + depth)
             
@@ -100,4 +124,7 @@ class WikipediaCrawler:
             return max_reach
 
         await dfs(url, 0)
+        cls.logger.info(f"Deep crawl completed in {time.time() - start_time:.2f} seconds")
+        cls.logger.info(f"Visited {len(memo) - start_memory} pages")
+        
         return memo
