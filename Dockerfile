@@ -1,4 +1,3 @@
-# Utiliser une image Python officielle comme base
 FROM python:3.12-slim-bookworm
 
 # Définir le répertoire de travail
@@ -6,6 +5,9 @@ WORKDIR /app
 
 # Copier les fichiers du projet dans le conteneur
 COPY . /app
+
+# Supprimer le fichier .env si présent (assurez-vous qu'il ne soit pas copié ou utilisé d'abord)
+RUN rm -f /app/.env
 
 # Installer les dépendances à partir du fichier requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
@@ -22,3 +24,4 @@ VOLUME ["/app/data", "/app/logs"]
 
 # Définir la commande par défaut pour démarrer l'application
 CMD ["python", "main.py"]
+
