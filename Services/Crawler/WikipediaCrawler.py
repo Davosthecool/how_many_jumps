@@ -1,11 +1,11 @@
-import json
 import time
+from typing import Any
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests, logging
 
-from WikipediaPage import WikipediaPage
-from WikipediaDatabase import WikipediaDatabase
+from Services.Crawler.WikipediaPage import WikipediaPage
+from Services.Crawler.WikipediaDatabase import WikipediaDatabase
 
 
 class WikipediaCrawler:
@@ -13,7 +13,7 @@ class WikipediaCrawler:
     A class to crawl Wikipedia pages and extract links.
     """
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
-                        filename='wikipedia_crawler.log', filemode='a')
+                        filename='logs/wikipedia_crawler.log', filemode='a')
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -62,7 +62,7 @@ class WikipediaCrawler:
         return list(set(page.children))
 
     @classmethod
-    async def deep_crawl(cls, url: str, memo: dict[str, WikipediaPage] = None, database_handler: WikipediaDatabase = None, max_depth: int = None) -> dict[str, WikipediaPage]:
+    async def deep_crawl(cls, url: str, memo: dict[str, WikipediaPage] = None, database_handler: WikipediaDatabase = None, max_depth: int = None) -> dict[str, Any]:
         """
         Deep crawl from the given URL, exploring links up to a specified depth.
         """
@@ -124,7 +124,21 @@ class WikipediaCrawler:
             return max_reach
 
         await dfs(url, 0)
-        cls.logger.info(f"Deep crawl completed in {time.time() - start_time:.2f} seconds")
-        cls.logger.info(f"Visited {len(memo) - start_memory} pages")
+
+        dict_result = {
+            "visited": len(memo) - start_memory,
+            "total": len(memo),
+            
+            "start_url": url,
+            "domain": domain,
+            "depth": max_depth,
+
+            "started_at": start_time,
+            "finished_at": time.time(),
+            "duration": time.time() - start_time,
+        }
         
-        return memo
+        cls.logger.info(f"Deep crawl completed in {dict_result['duration']:.2f} seconds")
+        cls.logger.info(f"Visited {dict_result['visited']} pages")
+
+        return dict_result

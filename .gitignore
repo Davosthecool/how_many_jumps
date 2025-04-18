@@ -3,3 +3,7 @@
 .vscode/
 *.db
 __pycache__/
+.env
+.config
+logs/
+data/

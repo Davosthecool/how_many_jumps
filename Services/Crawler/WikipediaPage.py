@@ -1,6 +1,5 @@
 from urllib.parse import urlparse
 
-
 class WikipediaPage:
     def __init__(self, url: str):
         url_result = urlparse(url)

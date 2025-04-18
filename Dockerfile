@@ -1,0 +1,24 @@
+# Utiliser une image Python officielle comme base
+FROM python:3.12-slim-bookworm
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers du projet dans le conteneur
+COPY . /app
+
+# Installer les dépendances à partir du fichier requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Créer les répertoires pour les volumes persistants
+RUN mkdir -p /app/data /app/logs
+RUN mkdir -p /app/Config/.config
+
+# Exposer les ports nécessaires (si vous avez une API ou autre service à exposer)
+EXPOSE 8000
+
+# Définir les volumes pour la base de données et le fichier de log
+VOLUME ["/app/data", "/app/logs"]
+
+# Définir la commande par défaut pour démarrer l'application
+CMD ["python", "main.py"]

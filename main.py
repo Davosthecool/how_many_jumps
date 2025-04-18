@@ -1,20 +1,31 @@
-import requests, asyncio
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+import asyncio
 
-from WikipediaCrawler import WikipediaCrawler
-from WikipediaDatabase import WikipediaDatabase
+from Config.Config import Config
+from Services.Crawler.WikipediaCrawler import WikipediaCrawler
+from Services.Crawler.WikipediaDatabase import WikipediaDatabase
+from Services.Mailer.Mailer import Mailer
 
-async def main():
-    db = WikipediaDatabase('wikipedia_crawl.db')
-    print("Connecting...")
+async def explore_wikipedia(config: Config):
+    db = WikipediaDatabase(config.db_path)
+    print("Connecting to database...")
     await db.connect()
     print("Loading pages...")
     pages = await db.load_all_pages()
     print("Crawling...")
-    await WikipediaCrawler.deep_crawl('https://en.wikipedia.org/wiki/Martin_Luther_King', pages, db, 3)
+    result = await WikipediaCrawler.deep_crawl(config.wikipedia_start_url, pages, db, config.wikipedia_max_depth)
     print("Closing Connection...")
     await db.close()
+    return result
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    config = Config()
+    print("Config completed.")
+    print("Connecting to mailer...")
+    mailer = Mailer(config)
+    mailer.get_service()
+    print("Mailer connected.")
+    result = asyncio.run(explore_wikipedia(config))
+    print("Sending email...")
+    mailer.send_result_mail(result)
+    print("Crawling completed and email sent.")
+    

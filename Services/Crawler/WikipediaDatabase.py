@@ -2,7 +2,7 @@ import aiosqlite
 import json
 from contextlib import asynccontextmanager
 
-from WikipediaPage import WikipediaPage
+from Services.Crawler.WikipediaPage import WikipediaPage
 
 class WikipediaDatabase:
     def __init__(self, db_path='wikipedia_crawl.db'):
@@ -12,15 +12,6 @@ class WikipediaDatabase:
     async def connect(self):
         self.conn = await aiosqlite.connect(self.db_path)
         await self.create_table()
-
-    @asynccontextmanager
-    async def use_db(path='wikipedia_crawl.db'):
-        db = WikipediaDatabase(path)
-        await db.connect()
-        try:
-            yield db
-        finally:
-            await db.close()
 
     async def create_table(self):
         await self.conn.execute('''
