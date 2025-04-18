@@ -66,6 +66,20 @@ class Mailer:
             except Exception as e:
                 print(f"An error occurred for {email}: {e}")
 
+    def send_eror_mail(self, error: Exception):
+        """
+        Send an error message via email.
+        """
+        subject = "Error in Wikipedia Crawl"
+        content = f"""
+        An error occurred during the Wikipedia crawl:
+        
+        Error: {str(error)}
+        
+        Please check the logs for more details.
+        """
+        self._send_mail(subject, content)
+        
     def send_result_mail(self, result_dict: dict):
         """
         Send the result of the Wikipedia crawl via email.

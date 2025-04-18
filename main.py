@@ -18,14 +18,22 @@ async def explore_wikipedia(config: Config):
     return result
 
 if __name__ == "__main__":
+    
     config = Config()
     print("Config completed.")
     print("Connecting to mailer...")
     mailer = Mailer(config)
     mailer.get_service()
     print("Mailer connected.")
-    result = asyncio.run(explore_wikipedia(config))
-    print("Sending email...")
-    mailer.send_result_mail(result)
-    print("Crawling completed and email sent.")
+
+    try:
+        print("Starting Wikipedia exploration...")
+        result = asyncio.run(explore_wikipedia(config))
+        print("Sending email...")
+        mailer.send_result_mail(result)
+        print("Crawling completed and email sent.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        mailer.send_eror_mail(e)
+        raise e
     

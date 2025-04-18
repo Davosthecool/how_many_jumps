@@ -8,8 +8,6 @@ class Config:
         """        
         load_dotenv(config_file)
         self.db_path = os.getenv('DB_PATH', default='data/wikipedia_crawl.db')
-        if not self.db_path: raise ValueError("DB_PATH is required")
-
 
         self.wikipedia_start_url = os.getenv('WIKIPEDIA_START_URL')
         if not self.wikipedia_start_url: raise ValueError("WIKIPEDIA_START_URL is required")
