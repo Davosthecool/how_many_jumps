@@ -2,6 +2,14 @@
 
 The goal of this application is to aim how many redirection within Wikipedia's pages you need to go from the first one to the second one
 
+There is multiples endpoints in this project :
+- Crawling, the endpoint that will crawl a Wikipedia page and store the data in a SQLite database, without this data, the application won't work
+
+- Game, the endpoint that will take two Wikipedia pages and ask you how many jumps you need to go from the first one to the second one
+
+
+# Crawling
+
 ## Requirements
 
 Python 3.12 OR docker
@@ -81,3 +89,7 @@ docker build -t how-many-jumps .
 ```
 ./run.sh
 ```
+
+
+# Game
+
