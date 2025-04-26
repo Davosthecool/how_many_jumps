@@ -6,13 +6,13 @@ from Services.Crawler.WikipediaDatabase import WikipediaDatabase
 from Services.Mailer.Mailer import Mailer
 
 async def explore_wikipedia(config: Config):
-    db = WikipediaDatabase(config.db_path)
+    db = WikipediaDatabase(config.db_path, config.log_path)
     print("Connecting to database...")
     await db.connect()
     print("Loading pages...")
     pages = await db.load_all_pages()
     print("Crawling...")
-    result = await WikipediaCrawler.deep_crawl(config.wikipedia_start_url, pages, db, config.wikipedia_max_depth)
+    result = await WikipediaCrawler(config.log_path).deep_crawl(config.wikipedia_start_url, pages, db, config.wikipedia_max_depth)
     print("Closing Connection...")
     await db.close()
     return result

@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from Services.Crawler.WikipediaPage import WikipediaPage
 
 class WikipediaDatabase:
-    def __init__(self, db_path='wikipedia_crawl.db'):
+    def __init__(self, db_path: str, log_path: str):
         self.db_path = db_path
+        self.log_path = log_path
         self.conn = None
 
     async def connect(self):
