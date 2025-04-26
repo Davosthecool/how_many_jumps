@@ -1,9 +1,20 @@
-.venv/
-*.log
+# Tools and IDEs generated files
 .vscode/
-*.db
 __pycache__/
+node_modules/
+package-lock.json
+
+# Env files
 .env
-.config
+.venv/
+
+# User-specific files
+.config/
+
+# Build and distribution files
+*.log
+*.db
+*.dot
 logs/
 data/
+dist/

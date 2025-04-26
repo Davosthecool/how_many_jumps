@@ -1,0 +1,62 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+#game-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+h1 {
+    margin-bottom: 20px;
+}
+input[type="url"], input[type="number"] {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 0
+}
+input[type="url"]{
+    width: 80%;
+    padding: 10px;
+}
+button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #218838;
+}
+.inline-input {
+    width: auto;
+    margin: 0 5px;
+    padding: 5px;
+}
+#result {
+    margin-top: 20px;
+    font-size: 1.2em;
+
+    border-radius: 4px;
+    border-style: solid;
+    border-width: 2px;
+}
+.error {
+    color: red;
+    background-color: rgb(255, 0, 0, 0.2);
+    border-color: rgb(255, 0, 0, 0.5);
+}
+.success {
+    color: green;
+    background-color: rgb(0, 255, 0, 0.2);
+    border-color: rgb(0, 255, 0, 0.5);
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <title>How Many Jumps</title>
+</head>
+<body>
+    <div id="game-container">
+        <h1>How Many Jumps</h1>
+
+        <p>From</p>
+        <input type="url" id="firstUrl" placeholder="https://en.wikipedia.org" required/>
+        <p>To</p>
+        <input type="url" id="secondUrl" placeholder="https://en.wikipedia.org" required/>
+        <p>There is <input type="number" id="numJumps" class="inline-input" placeholder="Number of Jumps" min="1" max="100"/> Jumps</p>
+
+        <button id="submit">Submit</button>
+
+        <div id="result" class="success" style="display: none;">
+            Reussi
+        </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
