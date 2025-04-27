@@ -18,9 +18,7 @@ export class DatabaseHelper{
     constructor(dbPath: string) {
         this.db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
-                console.error('Error opening database ' + err.message);
-            } else {
-                console.log('Connected to the database.');
+                throw new Error('Error opening database ' + err.message);
             }
         });
     }
@@ -28,9 +26,7 @@ export class DatabaseHelper{
     public close() {
         this.db.close((err) => {
             if (err) {
-                console.error('Error closing database ' + err.message);
-            } else {
-                console.log('Closed the database connection.');
+                throw new Error('Error closing database ' + err.message);
             }
         });
     }
@@ -43,7 +39,7 @@ export class DatabaseHelper{
         return new Promise((resolve, reject) => {
             this.db.get("SELECT * FROM pages WHERE url = ?", [link], (err, row: { url: string; children: string; depth_explored: number } | undefined) => {
                 if (err) {
-                    console.error('Error executing query ' + err.message);
+                    throw new Error('Error fetching link ' + err.message);
                     reject(err);
                 } else if (row) {
                     resolve(this.deserialize_row(row));
@@ -58,7 +54,7 @@ export class DatabaseHelper{
         return new Promise((resolve, reject) => {
             this.db.all("SELECT * FROM pages", [], (err, rows: Array<{ url: string; children: string; depth_explored: number }>) => {
                 if (err) {
-                    console.error('Error executing query ' + err.message);
+                    throw new Error('Error fetching link ' + err.message);
                     reject(err);
                 } else {
                     resolve(rows.map(row => this.deserialize_row(row)));
@@ -71,7 +67,7 @@ export class DatabaseHelper{
         return new Promise((resolve, reject) => {
             this.db.all("SELECT * FROM pages WHERE children LIKE ?", [`%"${link}"%`], (err, rows: Array<{ url: string; children: string; depth_explored: number }>) => {
                 if (err) {
-                    console.error('Error executing query ' + err.message);
+                    throw new Error('Error fetching link ' + err.message);
                     reject(err);
                 } else {
                     resolve(rows.map(row => this.deserialize_row(row)));

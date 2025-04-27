@@ -4,14 +4,25 @@ import { GraphHelper } from './graphHelper.ts';
 import Fastify from "fastify";
 
 
-const config = new ConfigHelper('./.env');
-const DBHelper = new DatabaseHelper(config.DB_PATH);
+const app = Fastify({logger: {
+    level: 'info',
+    transport: {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname'
+        }
+    }
+}});
 
+const config = new ConfigHelper('./.env');
+app.log.info("Config loaded: " + JSON.stringify(config));
+const DBHelper = new DatabaseHelper(config.DB_PATH);
+app.log.info("DatabaseHelper initialized");
 const graphHelper = new GraphHelper();
 const graph = graphHelper.createGraph(await DBHelper.getAllLinks());
-console.log("Graph created.");
-
-const app = Fastify();
+app.log.info("Graph created with nodes: " + graph.nodes().length + " and edges: " + graph.edges().length);
 
 app.register( async (app) => {
 
@@ -37,11 +48,9 @@ app.register( async (app) => {
 
 }, {prefix: "/api"});
 
-
 const start = async () => {
   try {
     await app.listen({ port: 3000 });
-    console.log("Server is running at http://localhost:3000");
   } catch (err) {
     app.log.error(err);
     console.error("Error starting the server:", err);

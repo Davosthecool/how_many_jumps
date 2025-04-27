@@ -9,7 +9,7 @@ export class GraphHelper {
                 graph.setNode(node.url, node);
             }
         } catch (error) {
-            console.error(`Error adding node ${node.url}: ${error}`);
+            throw new Error(`Error adding node ${node.url}: ${error}`);
         }
     }
 
@@ -75,7 +75,7 @@ export class GraphHelper {
                     }
                     this.addEdge(graph, page.url, child);
                 } catch (error) {
-                    console.error(`Error adding edge from ${page.url} to ${child}: ${error}`);
+                    throw new Error(`Error adding edge from ${page.url} to ${child}: ${error}`);
                 }
             }
         }

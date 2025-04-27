@@ -7,8 +7,6 @@ export class ConfigHelper {
         dotenv.config({ path: envPath });
 
         this.DB_PATH = process.env.DB_PATH ? process.env.DB_PATH : (() => { throw new Error("DB_PATH is not defined in the environment variables."); })();
-
-        console.log("ConfigHelper initialized.");
     }
 
 }
