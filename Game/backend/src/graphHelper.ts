@@ -19,34 +19,47 @@ export class GraphHelper {
         }
     }
 
-    public findPathAndJumps(graph: Graph, startNode: string, endNode: string): { pathExists: boolean, jumps: number } {
+    public findPathAndJumps(graph: Graph, startNode: string, endNode: string): { pathExists: boolean, jumps: number, path: string[] } {
         const visited = new Set<string>();
         const queue: { node: string, jumps: number }[] = [{ node: startNode, jumps: 0 }];
+        const parentMap = new Map<string, string | null>();
         
+        parentMap.set(startNode, null);
+    
         while (queue.length > 0) {
             const current = queue.shift()!;
             const currentNode = current.node;
             const currentJumps = current.jumps;
             
             if (currentNode === endNode) {
-                return { pathExists: true, jumps: currentJumps };
+                const path: string[] = [];
+                let node: string | null = endNode;
+                while (node !== null) {
+                    path.unshift(node);
+                    node = parentMap.get(node) || null;
+                }
+                return { pathExists: true, jumps: currentJumps, path };
             }
-
+    
             if (!visited.has(currentNode)) {
                 visited.add(currentNode);
-
+    
                 const successors = graph.successors(currentNode);
                 if (Array.isArray(successors)) {
                     for (const successor of successors) {
-                        queue.push({ node: successor, jumps: currentJumps + 1 });
+                        if (!visited.has(successor)) {
+                            queue.push({ node: successor, jumps: currentJumps + 1 });
+                            if (!parentMap.has(successor)) {
+                                parentMap.set(successor, currentNode);
+                            }
+                        }
                     }
                 }
             }
         }
-
-        return { pathExists: false, jumps: -1 };
+    
+        return { pathExists: false, jumps: -1, path: [] };
     }
-
 
     public createGraph(pages: DatabasePage[]): Graph {
         const graph = new Graph({ directed: true });
