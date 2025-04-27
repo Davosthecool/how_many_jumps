@@ -4,8 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' src/main.ts"
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js"
   },
   "author": "Davosthecool",
   "license": "ISC",
@@ -13,12 +14,14 @@
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
     "@types/node": "^22.14.1",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@dagrejs/graphlib": "^2.2.4",
+    "fastify": "^5.3.2",
     "sqlite3": "^5.1.7",
-    "ts-node": "^10.9.2",
-    "typescript-graph": "^0.3.0"
+    "ts-node": "^10.9.2"
   }
 }

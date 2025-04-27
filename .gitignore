@@ -10,6 +10,7 @@ package-lock.json
 
 # User-specific files
 .config/
+TODO.md
 
 # Build and distribution files
 *.log

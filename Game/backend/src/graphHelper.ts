@@ -44,7 +44,6 @@ export class GraphHelper {
             }
         }
 
-        // Si on a vidé la queue sans trouver le noeud de destination, les noeuds ne sont pas reliés
         return { pathExists: false, jumps: -1 };
     }
 
