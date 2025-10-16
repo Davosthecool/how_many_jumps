@@ -10,11 +10,6 @@ class Config:
         self.db_path = os.getenv('DB_PATH', default='data/wikipedia_crawl.db')
         self.log_path = os.getenv('LOG_PATH', default='logs/crawler.log')
 
-        self.wikipedia_start_url = os.getenv('WIKIPEDIA_START_URL')
-        if not self.wikipedia_start_url: raise ValueError("WIKIPEDIA_START_URL is required")
-        self.wikipedia_max_depth = int(os.getenv('WIKIPEDIA_MAX_DEPTH', default=0))
-
-
         self.mailer_smtp_server = os.getenv('MAILER_SMTP_SERVER', default='smtp.gmail.com')
         self.mailer_port = int(os.getenv('MAILER_PORT', default=465))
         self.mailer_email = os.getenv('MAILER_EMAIL')

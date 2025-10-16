@@ -68,6 +68,7 @@ class WikipediaCrawler:
         """
         Deep crawl from the given URL, exploring links up to a specified depth.
         """
+
         if memo is None:
             memo: dict[str, WikipediaPage] = {}
 

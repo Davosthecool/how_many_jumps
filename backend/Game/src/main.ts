@@ -2,6 +2,7 @@ import { DatabaseHelper } from './databaseHelper.ts';
 import { ConfigHelper } from './configHelper.ts';
 import { GraphHelper } from './graphHelper.ts';
 import Fastify from "fastify";
+import cors from '@fastify/cors';
 
 
 const app = Fastify({logger: {
@@ -23,6 +24,10 @@ app.log.info("DatabaseHelper initialized");
 const graphHelper = new GraphHelper();
 const graph = graphHelper.createGraph(await DBHelper.getAllLinks());
 app.log.info("Graph created with nodes: " + graph.nodes().length + " and edges: " + graph.edges().length);
+
+await app.register(cors, {
+  origin: 'http://127.0.0.1:3001'
+});
 
 app.register( async (app) => {
 
